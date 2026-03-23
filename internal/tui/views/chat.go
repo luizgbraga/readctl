@@ -20,6 +20,7 @@ import (
 	"github.com/luizgbraga/readctl/internal/research"
 	"github.com/luizgbraga/readctl/internal/storage"
 	"github.com/luizgbraga/readctl/internal/tui/styles"
+	"github.com/muesli/reflow/wordwrap"
 )
 
 // ChatModel manages the chat view for a topic
@@ -846,15 +847,21 @@ func (m ChatModel) renderMessageBubble(msg storage.Message, isStreaming bool) st
 	var bubble string
 	if msg.Role == "user" {
 		// User message: right-aligned, accent color
+		// Calculate wrap width (account for border + padding)
+		wrapWidth := m.width - 24
+		if wrapWidth < 40 {
+			wrapWidth = 40
+		}
+		// Wrap the text before rendering
+		wrappedContent := wordwrap.String(content, wrapWidth)
+
 		userStyle := lipgloss.NewStyle().
 			Border(lipgloss.RoundedBorder()).
 			BorderForeground(lipgloss.Color("#04B575")).
 			Foreground(lipgloss.Color("#04B575")).
-			Padding(0, 1).
-			MaxWidth(m.width - 20).
-			Align(lipgloss.Right)
+			Padding(0, 1)
 
-		bubble = userStyle.Render(content)
+		bubble = userStyle.Render(wrappedContent)
 
 		// Right-align the whole bubble
 		bubble = lipgloss.NewStyle().
